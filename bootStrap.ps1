@@ -27,7 +27,7 @@ if ($adminUsername) {
 }
 
 if ($adminPassword) {
-    Write-Host "[$scriptName] adminPassword : `$adminPassword"
+    Write-Host "[$scriptName] adminPassword : $adminPassword"
 } else {
     Write-Host "[$scriptName] adminPassword not supplied, exit with error 7602"; exit 7602
 }
