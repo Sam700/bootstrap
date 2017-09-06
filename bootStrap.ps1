@@ -1,4 +1,5 @@
 Param (
+  [string]$agentSAPassword,
   [string]$personalAccessToken,
   [string]$buildagent,
   [string]$deploymentGroup,
@@ -21,10 +22,16 @@ function executeExpression ($expression) {
 
 $scriptName = 'bootStrap.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
-if ($personalAccessToken) {
-    Write-Host "[$scriptName] personalAccessToken : $personalAccessToken"
+if ($agentSAPassword) {
+    Write-Host "[$scriptName] agentSAPassword     : `$agentSAPassword"
 } else {
-    Write-Host "[$scriptName] personalAccessToken : (no supplied, will install VSTS agent but not attempt to register)"
+    Write-Host "[$scriptName] agentSAPassword not supplied, exit with error 7643"; exit 7643
+}
+
+if ($personalAccessToken) {
+    Write-Host "[$scriptName] personalAccessToken : `$personalAccessToken"
+} else {
+    Write-Host "[$scriptName] personalAccessToken : (not supplied, will install VSTS agent but not attempt to register)"
 }
 
 if ($buildagent) {
@@ -58,7 +65,7 @@ executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zi
 executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 
 Write-Host "[$scriptName] Create the agent user first so it is not included in the portable.ps1 script"
-executeExpression './automation/provisioning/newUser.ps1 vstsagent swUwe5aG -passwordExpires no'
+executeExpression './automation/provisioning/newUser.ps1 vstsagent $agentSAPassword -passwordExpires no'
 executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators vstsagent'
 
 Write-Host "[$scriptName] Data Test Dependancies"
@@ -103,7 +110,7 @@ Write-Host "[$scriptName] Install the VSTS Agent, if not an agent, assume workst
 executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.120.1/vsts-agent-win7-x64-2.120.1.zip'
 
 if ( $personalAccessToken ) {
-  executeExpression './automation/provisioning/InstallAgent.ps1 https://apteryxwealth.visualstudio.com $personalAccessToken Build $buildagent vstsagent swUwe5aG $deploymentGroup $projectname'
+  executeExpression './automation/provisioning/InstallAgent.ps1 https://apteryxwealth.visualstudio.com $personalAccessToken Build $buildagent vstsagent $agentSAPassword $deploymentGroup $projectname'
   executeExpression './automation/provisioning/addVSTSPackageCred.ps1 worker https://apteryxwealth.pkgs.visualstudio.com/_packaging/worker/nuget/v3/index.json $personalAccessToken'
   executeExpression './automation/provisioning/addVSTSPackageCred.ps1 webdeploy https://apteryxwealth.pkgs.visualstudio.com/_packaging/webdeploy/nuget/v3/index.json $personalAccessToken'
   executeExpression './automation/provisioning/runScript.ps1 "C:\agent\externals\nuget\nuget.exe list -source webdeploy"'
