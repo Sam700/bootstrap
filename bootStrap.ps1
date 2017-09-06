@@ -1,5 +1,6 @@
 Param (
   [string]$agentSAPassword,
+  [string]$vstsURL,
   [string]$personalAccessToken,
   [string]$buildagent,
   [string]$deploymentGroup,
@@ -23,13 +24,19 @@ function executeExpression ($expression) {
 $scriptName = 'bootStrap.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($agentSAPassword) {
-    Write-Host "[$scriptName] agentSAPassword     : `$agentSAPassword"
+    Write-Host "[$scriptName] agentSAPassword     : $agentSAPassword"
 } else {
     Write-Host "[$scriptName] agentSAPassword not supplied, exit with error 7643"; exit 7643
 }
 
+if ($vstsURL) {
+    Write-Host "[$scriptName] vstsURL             : $vstsURL"
+} else {
+    Write-Host "[$scriptName] vstsURL not supplied, exit with error 7644"; exit 7644
+}
+
 if ($personalAccessToken) {
-    Write-Host "[$scriptName] personalAccessToken : `$personalAccessToken"
+    Write-Host "[$scriptName] personalAccessToken : $personalAccessToken"
 } else {
     Write-Host "[$scriptName] personalAccessToken : (not supplied, will install VSTS agent but not attempt to register)"
 }
@@ -71,6 +78,8 @@ executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zi
 
 # Temporarily get latest, until 1.5.8 
 executeExpression 'mv windows-master/automation .'
+executeExpression 'cat .\automation\CDAF.windows'
+executeExpression 'dir .\automation\provisioning'
 executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 
 Write-Host "[$scriptName] Create the agent user first so it is not included in the portable.ps1 script"
@@ -119,11 +128,7 @@ Write-Host "[$scriptName] Install the VSTS Agent, if not an agent, assume workst
 executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.120.1/vsts-agent-win7-x64-2.120.1.zip'
 
 if ( $personalAccessToken ) {
-  executeExpression './automation/provisioning/InstallAgent.ps1 https://apteryxwealth.visualstudio.com $personalAccessToken Build $buildagent vstsagent $agentSAPassword $deploymentGroup $projectname'
-  executeExpression './automation/provisioning/addVSTSPackageCred.ps1 worker https://apteryxwealth.pkgs.visualstudio.com/_packaging/worker/nuget/v3/index.json $personalAccessToken'
-  executeExpression './automation/provisioning/addVSTSPackageCred.ps1 webdeploy https://apteryxwealth.pkgs.visualstudio.com/_packaging/webdeploy/nuget/v3/index.json $personalAccessToken'
-  executeExpression './automation/provisioning/runScript.ps1 "C:\agent\externals\nuget\nuget.exe list -source webdeploy"'
-  executeExpression './automation/provisioning/runScript.ps1 "C:\agent\externals\nuget\nuget.exe list -source worker"'
+  executeExpression './automation/provisioning/InstallAgent.ps1 $vstsURL $personalAccessToken Build $buildagent vstsagent $agentSAPassword $deploymentGroup $projectname'
 } else {
   executeExpression 'cd C:\cm;.\automation\cdEmulate.bat'
   executeExpression './automation/provisioning/InstallAgent.ps1' # Just extract binaries
