@@ -79,7 +79,6 @@ executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zi
 # Temporarily get latest, until 1.5.8 
 executeExpression 'mv windows-master/automation .'
 executeExpression 'cat .\automation\CDAF.windows'
-executeExpression 'dir .\automation\provisioning'
 executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 
 Write-Host "[$scriptName] Create the agent user first so it is not included in the portable.ps1 script"
