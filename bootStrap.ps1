@@ -60,24 +60,14 @@ if ($projectname) {
     Write-Host "[$scriptName] projectname         : (not supplied)"
 }
 
-#Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
-#Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
-#$zipFile = 'WU-CDAF.zip'
-#Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
-#$url = "http://cdaf.io/static/app/downloads/$zipFile"
-
-# Temporarily get latest, until 1.5.8 
-Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
-$zipFile = "windows-master.zip"
-#Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
-$url = "https://codeload.github.com/cdaf/windows/zip/master"
-
+Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
+Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
+$zipFile = 'WU-CDAF.zip'
+Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
+$url = "http://cdaf.io/static/app/downloads/$zipFile"
 executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
 executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-
-# Temporarily get latest, until 1.5.8 
-executeExpression 'mv windows-master/automation .'
 executeExpression 'cat .\automation\CDAF.windows'
 executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 
