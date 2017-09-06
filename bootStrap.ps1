@@ -24,7 +24,7 @@ function executeExpression ($expression) {
 $scriptName = 'bootStrap.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($agentSAPassword) {
-    Write-Host "[$scriptName] agentSAPassword     : $agentSAPassword"
+    Write-Host "[$scriptName] agentSAPassword     : `$agentSAPassword"
 } else {
     Write-Host "[$scriptName] agentSAPassword not supplied, exit with error 7643"; exit 7643
 }
@@ -36,7 +36,7 @@ if ($vstsURL) {
 }
 
 if ($personalAccessToken) {
-    Write-Host "[$scriptName] personalAccessToken : $personalAccessToken"
+    Write-Host "[$scriptName] personalAccessToken : `$personalAccessToken"
 } else {
     Write-Host "[$scriptName] personalAccessToken : (not supplied, will install VSTS agent but not attempt to register)"
 }
@@ -72,8 +72,10 @@ executeExpression 'cat .\automation\CDAF.windows'
 executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 
 Write-Host "[$scriptName] Create the agent user first so it is not included in the portable.ps1 script"
-executeExpression './automation/provisioning/newUser.ps1 vstsagent $agentSAPassword -passwordExpires no'
-executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators vstsagent'
+Write-Host "[$scriptName] `$vstsagent = 'vsts-agent-sa'"
+$vstsagent = 'vsts-agent-sa'
+executeExpression './automation/provisioning/newUser.ps1 $vstsagent $agentSAPassword -passwordExpires no'
+executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsagent'
 
 Write-Host "[$scriptName] Data Test Dependancies"
 Write-Host "[$scriptName] Download and install SQL Server 2012 Express LocalDB (the same engine shipped with Visual Studio)"
@@ -117,7 +119,7 @@ Write-Host "[$scriptName] Install the VSTS Agent, if not an agent, assume workst
 executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.120.1/vsts-agent-win7-x64-2.120.1.zip'
 
 if ( $personalAccessToken ) {
-  executeExpression './automation/provisioning/InstallAgent.ps1 $vstsURL $personalAccessToken Build $buildagent vstsagent $agentSAPassword $deploymentGroup $projectname'
+  executeExpression './automation/provisioning/InstallAgent.ps1 $vstsURL $personalAccessToken Build $buildagent $vstsagent $agentSAPassword $deploymentGroup $projectname'
 } else {
   executeExpression 'cd C:\cm;.\automation\cdEmulate.bat'
   executeExpression './automation/provisioning/InstallAgent.ps1' # Just extract binaries
