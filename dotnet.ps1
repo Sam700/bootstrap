@@ -141,6 +141,6 @@ Write-Host "[$scriptName] List for informational purposes"
 executeExpression './automation/remote/capabilities.ps1'
 
 Write-Host "[$scriptName] Reboot to Apply .NET and verify agent registration"
-executeExpression 'shutdown /r /t 5'
+executeExpression 'shutdown /r /t 15'
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
