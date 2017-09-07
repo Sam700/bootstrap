@@ -82,13 +82,14 @@ executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zi
 executeExpression 'mv windows-master\automation .'
 executeExpression 'cat .\automation\CDAF.windows'
 executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
+executeExpression '(pwd).path'
 
-Write-Host "[$scriptName] Create the agent user first so it is not included in the portable.ps1 script"
-Write-Host "[$scriptName] `$vstsSA = 'vsts-agent-sa'"
-$vstsSA = 'vsts-agent-sa'
-executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
-executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
+#Write-Host "[$scriptName] Create the agent user first so it is not included in the portable.ps1 script"
+#Write-Host "[$scriptName] `$vstsSA = 'vsts-agent-sa'"
+#$vstsSA = 'vsts-agent-sa'
+#executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
+#executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
 
-executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL $personalAccessToken Build $buildagent $vstsSA $agentSAPassword $deploymentGroup $projectname"
+#executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL $personalAccessToken Build $buildagent $vstsSA $agentSAPassword $deploymentGroup $projectname"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
