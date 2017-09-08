@@ -85,7 +85,7 @@ executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capa
 
 Write-Host "[$scriptName] `$vstsSA = 'vsts-agent-sa'"
 $vstsSA = 'vsts-agent-sa'
-executeExpression './automation/provisioning/newUser.ps1 $vstsSA `$agentSAPassword -passwordExpires no'
+executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
 executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
 executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.120.1/vsts-agent-win7-x64-2.120.1.zip'
 executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken Build $buildagent $vstsSA `$agentSAPassword $deploymentGroup $projectname"
