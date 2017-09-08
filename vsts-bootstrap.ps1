@@ -85,7 +85,7 @@ executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$persona
 
 if ($vstsPackageAccessToken) {
     Write-Host "[$scriptName] Store vstsPackageAccessToken at machine level for subsequent configuration by the VSTS agent service account"
-    executeExpression "SetEnvironmentVariable('OFFICE_365', '`$vstsPackageAccessToken', 'Machine')"
+    executeExpression "[Environment]::SetEnvironmentVariable('VSTS_PACKAGE_PAT', '`$vstsPackageAccessToken', 'Machine')"
 }
 
 executeExpression '(pwd).path'
