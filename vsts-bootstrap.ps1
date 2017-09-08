@@ -3,8 +3,7 @@ Param (
   [string]$vstsURL,
   [string]$personalAccessToken,
   [string]$buildagent,
-  [string]$deploymentGroup,
-  [string]$projectname
+  [string]$vstsPackageAccessToken
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -24,40 +23,34 @@ function executeExpression ($expression) {
 $scriptName = 'vsts-bootstrap.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($agentSAPassword) {
-    Write-Host "[$scriptName] agentSAPassword     : `$agentSAPassword"
+    Write-Host "[$scriptName] agentSAPassword        : `$agentSAPassword"
 } else {
     Write-Host "[$scriptName] agentSAPassword not supplied, exit with error 7643"; exit 7643
 }
 
 if ($vstsURL) {
-    Write-Host "[$scriptName] vstsURL             : $vstsURL"
+    Write-Host "[$scriptName] vstsURL                : $vstsURL"
 } else {
     Write-Host "[$scriptName] vstsURL not supplied, exit with error 7644"; exit 7644
 }
 
 if ($personalAccessToken) {
-    Write-Host "[$scriptName] personalAccessToken : `$personalAccessToken"
+    Write-Host "[$scriptName] personalAccessToken    : `$personalAccessToken"
 } else {
-    Write-Host "[$scriptName] personalAccessToken : (not supplied, will install VSTS agent but not attempt to register)"
+    Write-Host "[$scriptName] personalAccessToken    : (not supplied, will install VSTS agent but not attempt to register)"
 }
 
 if ($buildagent) {
-    Write-Host "[$scriptName] buildagent          : $buildagent"
+    Write-Host "[$scriptName] buildagent             : $buildagent"
 } else {
 	$buildagent = 'VSTS-AGENT'
-    Write-Host "[$scriptName] buildagent          : $buildagent (default)"
+    Write-Host "[$scriptName] buildagent             : $buildagent (default)"
 }
 
-if ($deploymentGroup) {
-    Write-Host "[$scriptName] deploymentGroup     : $deploymentGroup"
+if ($vstsPackageAccessToken) {
+    Write-Host "[$scriptName] vstsPackageAccessToken : $vstsPackageAccessToken"
 } else {
-    Write-Host "[$scriptName] deploymentGroup     : (not supplied)"
-}
-
-if ($projectname) {
-    Write-Host "[$scriptName] projectname         : $projectname"
-} else {
-    Write-Host "[$scriptName] projectname         : (not supplied)"
+    Write-Host "[$scriptName] vstsPackageAccessToken : (not supplied)"
 }
 
 #Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
@@ -88,7 +81,12 @@ $vstsSA = 'vsts-agent-sa'
 executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
 executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
 executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.120.1/vsts-agent-win7-x64-2.120.1.zip'
-executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken Build $buildagent $vstsSA `$agentSAPassword $deploymentGroup $projectname"
+executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken Build $buildagent $vstsSA `$agentSAPassword "
+
+if ($vstsPackageAccessToken) {
+    Write-Host "[$scriptName] Store vstsPackageAccessToken at machine level for subsequent configuration by the VSTS agent service account"
+    executeExpression "SetEnvironmentVariable('OFFICE_365', '`$vstsPackageAccessToken', 'Machine')"
+}
 
 executeExpression '(pwd).path'
 
