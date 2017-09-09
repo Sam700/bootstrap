@@ -48,7 +48,7 @@ if ($buildagent) {
 }
 
 if ($vstsPackageAccessToken) {
-    Write-Host "[$scriptName] vstsPackageAccessToken : $vstsPackageAccessToken"
+    Write-Host "[$scriptName] vstsPackageAccessToken : `$vstsPackageAccessToken"
 } else {
     Write-Host "[$scriptName] vstsPackageAccessToken : (not supplied)"
 }
