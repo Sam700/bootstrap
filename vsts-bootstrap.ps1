@@ -85,7 +85,7 @@ if ($personalAccessToken) {
 	$vstsSA = 'vsts-agent-sa'
 	executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
 	executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
-	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken Build $buildagent $vstsSA `$agentSAPassword"
+	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken Build $buildagent $vstsSA `$agentSAPassword "
 
 } else {
 
