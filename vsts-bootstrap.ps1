@@ -76,23 +76,28 @@ executeExpression 'mv windows-master\automation .'
 executeExpression 'cat .\automation\CDAF.windows'
 executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 
-Write-Host "[$scriptName] `$vstsSA = 'vsts-agent-sa'"
-$vstsSA = 'vsts-agent-sa'
-executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
-executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
-
+Write-Host "[$scriptName] Download VSTS Agent"
 executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.120.1/vsts-agent-win7-x64-2.120.1.zip'
 
 if ($personalAccessToken) {
+
+	Write-Host "[$scriptName] `$vstsSA = 'vsts-agent-sa'"
+	$vstsSA = 'vsts-agent-sa'
+	executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
+	executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
 	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken Build $buildagent $vstsSA `$agentSAPassword"
 
     Write-Host "[$scriptName] Store vstsPackageAccessToken at machine level for subsequent configuration by the VSTS agent service account"
     executeExpression '[Environment]::SetEnvironmentVariable("VSTS_PACKAGE_PAT", "$vstsPackageAccessToken", "Machine")'
+
     Write-Host "[$scriptName] Restart to load environment variable"
     executeExpression "shutdown /s /t 10" # Allow release RELOAD start the host after registration
+
 } else {
+
 	Write-Host "[$scriptName] VSTS Personal Access Token (personalAccessToken) not passed, so just extract software"
 	executeExpression "./automation/provisioning/InstallAgent.ps1"
+
 }
 
 executeExpression '(pwd).path'
