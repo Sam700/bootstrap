@@ -3,7 +3,8 @@ Param (
   [string]$vstsURL,
   [string]$personalAccessToken,
   [string]$buildagent,
-  [string]$vstsPackageAccessToken
+  [string]$vstsPackageAccessToken,
+  [string]$pool
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -53,6 +54,13 @@ if ($vstsPackageAccessToken) {
     Write-Host "[$scriptName] vstsPackageAccessToken : (not supplied)"
 }
 
+if ($pool) {
+    Write-Host "[$scriptName] pool                   : $pool"
+} else {
+	$pool = 'Default'
+    Write-Host "[$scriptName] pool                   : $pool (not supplied, so set to default)"
+}
+
 #Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
 #Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
 #$zipFile = 'WU-CDAF.zip'
@@ -85,7 +93,7 @@ if ($personalAccessToken) {
 	$vstsSA = 'vsts-agent-sa'
 	executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
 	executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
-	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken Build $buildagent $vstsSA `$agentSAPassword "
+	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken $pool $buildagent $vstsSA `$agentSAPassword "
 
 } else {
 
