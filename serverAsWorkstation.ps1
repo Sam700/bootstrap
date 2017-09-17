@@ -104,11 +104,10 @@ executeExpression "./automation/provisioning/installEXE.ps1 $mediaDir\SSMS-Setup
 Write-Host "[$scriptName] Install Docker"
 executeExpression ".\automation\provisioning\installDocker.ps1"
 
-executeExpression "[Environment]::SetEnvironmentVariable('SYNCED_FOLDER', '$mediaDir', 'Machine')"
+executeExpression "[Environment]::SetEnvironmentVariable('SYNCED_FOLDER', `"$mediaDir`", 'Machine')"
 Write-Host "[$scriptName] Oracle Virtual Box"
 executeExpression ".\automation\provisioning\installEXE.ps1 '$mediaDir\VirtualBox-5.1.22-115126-Win.exe' --silent"
  
-executeExpression "[Environment]::SetEnvironmentVariable('SCALE_FACTOR', '2', 'Machine')"
 Write-Host "[$scriptName] Hashicorp Vagrant, triggers automatic reboot"
 executeExpression ".\automation\provisioning\installMSI.ps1 '$mediaDir\vagrant_1.9.5.msi'"
 
