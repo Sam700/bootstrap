@@ -4,7 +4,8 @@ Param (
 	[string]$personalAccessToken,
 	[string]$buildagent,
 	[string]$vstsPackageAccessToken,
-	[string]$pool
+	[string]$vstsPool,
+	[string]$reboot
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -54,35 +55,45 @@ if ($vstsPackageAccessToken) {
     Write-Host "[$scriptName] vstsPackageAccessToken : (not supplied)"
 }
 
-if ($pool) {
-    Write-Host "[$scriptName] pool                   : $pool"
+if ($vstsPool) {
+    Write-Host "[$scriptName] vstsPool               : $vstsPool"
 } else {
-	$pool = 'Default'
-    Write-Host "[$scriptName] pool                   : $pool (not supplied, so set to default)"
+	$vstsPool = 'Default'
+    Write-Host "[$scriptName] vstsPool               : $vstsPool (not supplied, set to default)"
 }
 
-Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
-Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
-$zipFile = 'WU-CDAF.zip'
-Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
-$url = "http://cdaf.io/static/app/downloads/$zipFile"
-executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-executeExpression 'cat .\automation\CDAF.windows'
-executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
+if ($reboot) {
+    Write-Host "[$scriptName] reboot                 : $reboot"
+} else {
+	$reboot = 'yes'
+    Write-Host "[$scriptName] reboot                 : $reboot (not supplied, set to default)"
+}
 
-#Write-Host "[$scriptName] Get latest from GitHub"
-#Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
-#$zipFile = 'windows-master.zip'
-#Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
-#$url = "https://codeload.github.com/cdaf/windows/zip/master"
+Write-Host "[$scriptName] pwd                    : $(pwd)"
+Write-Host "[$scriptName] whoami                 : $(whoami)"
+
+#Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
+#Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
+#$zipFile = 'WU-CDAF.zip'
+#Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
+#$url = "http://cdaf.io/static/app/downloads/$zipFile"
 #executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
 #executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 #executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-#executeExpression 'mv windows-master\automation .'
 #executeExpression 'cat .\automation\CDAF.windows'
 #executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
+
+Write-Host "[$scriptName] Get latest from GitHub"
+Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
+$zipFile = 'windows-master.zip'
+Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
+$url = "https://codeload.github.com/cdaf/windows/zip/master"
+executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
+executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
+executeExpression 'mv windows-master\automation .'
+executeExpression 'cat .\automation\CDAF.windows'
+executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 
 Write-Host "[$scriptName] Download VSTS Agent"
 executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.120.1/vsts-agent-win7-x64-2.120.1.zip'
@@ -93,7 +104,7 @@ if ($personalAccessToken) {
 	$vstsSA = 'vsts-agent-sa'
 	executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
 	executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
-	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken $pool $buildagent $vstsSA `$agentSAPassword "
+	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken $vstsPool $buildagent $vstsSA `$agentSAPassword "
 
 } else {
 
@@ -106,9 +117,9 @@ if ($vstsPackageAccessToken) {
     Write-Host "[$scriptName] Store vstsPackageAccessToken at machine level for subsequent configuration by the VSTS agent service account"
     executeExpression '[Environment]::SetEnvironmentVariable("VSTS_PACKAGE_PAT", "$vstsPackageAccessToken", "Machine")'
     Write-Host "[$scriptName] Restart to load environment variable"
-    executeExpression "shutdown /r /t 10"
+    if ($reboot -eq 'yes') {
+	    executeExpression "shutdown /r /t 5"
+    }
 }
-
-executeExpression '(pwd).path'
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
