@@ -4,8 +4,7 @@ Param (
 	[string]$personalAccessToken,
 	[string]$buildagent,
 	[string]$vstsPackageAccessToken,
-	[string]$vstsPool,
-	[string]$reboot
+	[string]$vstsPool
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -115,11 +114,7 @@ if ($personalAccessToken) {
 
 if ($vstsPackageAccessToken) {
     Write-Host "[$scriptName] Store vstsPackageAccessToken at machine level for subsequent configuration by the VSTS agent service account"
-    executeExpression '[Environment]::SetEnvironmentVariable("VSTS_PACKAGE_PAT", "$vstsPackageAccessToken", "Machine")'
-    Write-Host "[$scriptName] Restart to load environment variable"
-    if ($reboot -eq 'yes') {
-	    executeExpression "shutdown /r /t 5"
-    }
+	executeExpression "Add-Content /packagePAT `"`$vstsPackageAccessToken`""
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
