@@ -2,9 +2,10 @@ Param (
 	[string]$agentSAPassword,
 	[string]$vstsURL,
 	[string]$personalAccessToken,
-	[string]$buildagent,
+	[string]$agentName,
 	[string]$vstsPackageAccessToken,
-	[string]$vstsPool
+	[string]$vstsPool,
+	[string]$buildAgent
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -41,11 +42,11 @@ if ($personalAccessToken) {
     Write-Host "[$scriptName] personalAccessToken    : (not supplied, will install VSTS agent but not attempt to register)"
 }
 
-if ($buildagent) {
-    Write-Host "[$scriptName] buildagent             : $buildagent"
+if ($agentName) {
+    Write-Host "[$scriptName] agentName              : $agentName"
 } else {
-	$buildagent = 'VSTS-AGENT'
-    Write-Host "[$scriptName] buildagent             : $buildagent (default)"
+	$agentName = 'VSTS-AGENT'
+    Write-Host "[$scriptName] agentName              : $agentName (default)"
 }
 
 if ($vstsPackageAccessToken) {
@@ -61,11 +62,11 @@ if ($vstsPool) {
     Write-Host "[$scriptName] vstsPool               : $vstsPool (not supplied, set to default)"
 }
 
-if ($reboot) {
-    Write-Host "[$scriptName] reboot                 : $reboot"
+if ($buildAgent) {
+    Write-Host "[$scriptName] buildAgent             : $buildAgent"
 } else {
-	$reboot = 'yes'
-    Write-Host "[$scriptName] reboot                 : $reboot (not supplied, set to default)"
+	$buildAgent = 'no'
+    Write-Host "[$scriptName] buildAgent             : $buildAgent (not supplied, set to default)"
 }
 
 Write-Host "[$scriptName] pwd                    : $(pwd)"
@@ -103,7 +104,7 @@ if ($personalAccessToken) {
 	$vstsSA = 'vsts-agent-sa'
 	executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
 	executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
-	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken $vstsPool $buildagent $vstsSA `$agentSAPassword "
+	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken $vstsPool $agentName $vstsSA `$agentSAPassword "
 
 } else {
 
@@ -115,6 +116,11 @@ if ($personalAccessToken) {
 if ($vstsPackageAccessToken) {
     Write-Host "[$scriptName] Store vstsPackageAccessToken at machine level for subsequent configuration by the VSTS agent service account"
 	executeExpression "Add-Content /packagePAT `"`$vstsPackageAccessToken`""
+}
+
+Write-Host "[$scriptName] If this host is a build agent, set environment varaible for subsequent initialisation"
+if ( $buildAgent -eq 'yes' ) {
+	[Environment]::SetEnvironmentVariable('BUILD_AGENT', 'yes', 'Machine')
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
