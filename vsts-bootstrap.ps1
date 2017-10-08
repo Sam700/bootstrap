@@ -5,7 +5,8 @@ Param (
 	[string]$agentName,
 	[string]$vstsPackageAccessToken,
 	[string]$vstsPool,
-	[string]$buildAgent
+	[string]$buildAgent,
+	[string]$vstsSA
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -69,6 +70,13 @@ if ($buildAgent) {
     Write-Host "[$scriptName] buildAgent             : $buildAgent (not supplied, set to default)"
 }
 
+if ($vstsSA) {
+    Write-Host "[$scriptName] vstsSA                 : $vstsSA"
+} else {
+	$vstsSA = '.\vsts-agent-sa'
+    Write-Host "[$scriptName] vstsSA                 : $vstsSA (not supplied, set to default)"
+}
+
 Write-Host "[$scriptName] pwd                    : $(pwd)"
 Write-Host "[$scriptName] whoami                 : $(whoami)"
 
@@ -100,8 +108,6 @@ executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Mic
 
 if ($personalAccessToken) {
 
-	Write-Host "[$scriptName] `$vstsSA = 'vsts-agent-sa'"
-	$vstsSA = 'vsts-agent-sa'
 	executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
 	executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
 	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken $vstsPool $agentName $vstsSA `$agentSAPassword "
