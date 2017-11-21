@@ -5,7 +5,6 @@ Param (
 	[string]$agentName,
 	[string]$vstsPackageAccessToken,
 	[string]$vstsPool,
-	[string]$buildAgent,
 	[string]$vstsSA
 )
 
@@ -61,13 +60,6 @@ if ($vstsPool) {
     Write-Host "[$scriptName] vstsPool               : $vstsPool (not supplied, set to default)"
 }
 
-if ($buildAgent) {
-    Write-Host "[$scriptName] buildAgent             : $buildAgent"
-} else {
-	$buildAgent = 'no'
-    Write-Host "[$scriptName] buildAgent             : $buildAgent (not supplied, set to default)"
-}
-
 if ($vstsSA) {
     Write-Host "[$scriptName] vstsSA                 : $vstsSA"
 } else {
@@ -120,13 +112,6 @@ if ($personalAccessToken) {
 if ($vstsPackageAccessToken) {
     Write-Host "[$scriptName] Store vstsPackageAccessToken at machine level for subsequent configuration by the VSTS agent service account"
 	executeExpression "Add-Content /packagePAT `"`$vstsPackageAccessToken`""
-}
-
-if ( $buildAgent -eq 'yes' ) {
-	Write-Host "[$scriptName] Set `$env:PROV_AS_BUILD_AGENT to $buildAgent for subsequent initialisation"
-	executeExpression "[Environment]::SetEnvironmentVariable('PROV_AS_BUILD_AGENT', '$buildAgent', 'Machine')"
-} else {
-	Write-Host "[$scriptName] `$env:PROV_AS_BUILD_AGENT not set becuase `$buildAgent is '$buildAgent', only set if 'yes'"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
