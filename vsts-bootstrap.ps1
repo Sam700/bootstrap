@@ -12,15 +12,13 @@ Param (
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	$LASTEXITCODE = 0
 	Write-Host "[$scriptName] $expression"
 	try {
-		$output = Invoke-Expression $expression
+		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 $scriptName = 'vsts-bootstrap.ps1'
@@ -124,9 +122,11 @@ if ($vstsPackageAccessToken) {
 	executeExpression "Add-Content /packagePAT `"`$vstsPackageAccessToken`""
 }
 
-Write-Host "[$scriptName] If this host is a build agent, set environment varaible for subsequent initialisation"
 if ( $buildAgent -eq 'yes' ) {
-	[Environment]::SetEnvironmentVariable('BUILD_AGENT', 'yes', 'Machine')
+	Write-Host "[$scriptName] Set `$env:PROV_AS_BUILD_AGENT to $buildAgent for subsequent initialisation"
+	executeExpression "[Environment]::SetEnvironmentVariable('PROV_AS_BUILD_AGENT', '$buildAgent', 'Machine')"
+} else {
+	Write-Host "[$scriptName] `$env:PROV_AS_BUILD_AGENT not set becuase `$buildAgent is '$buildAgent', only set if 'yes'"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
